@@ -3,7 +3,7 @@ require "set"
 require_relative "errors"
 require_relative "utils"
 
-module Debendencies
+class Debendencies
   module Private
     class << self
       # Extracts from an ELF file using `objdump`:

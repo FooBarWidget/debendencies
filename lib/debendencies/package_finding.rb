@@ -4,7 +4,7 @@ require_relative "errors"
 require_relative "elf_analysis"
 require_relative "utils"
 
-module Debendencies
+class Debendencies
   module Private
     class << self
       # Finds all packages providing a specific library soname. This is done using `dpkg-query -S`.

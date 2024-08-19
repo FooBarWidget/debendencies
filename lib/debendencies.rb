@@ -5,8 +5,6 @@ require_relative "debendencies/errors"
 require_relative "debendencies/utils"
 
 class Debendencies
-  class Error < StandardError; end
-
   # Represents a single Debian package dependency, e.g., `libc`.
   # Could potentially have version constraints, e.g., `libc (>= 2.28, <= 2.30)`.
   #

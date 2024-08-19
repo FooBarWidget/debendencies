@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 require_relative "errors"
 
-module Debendencies
+class Debendencies
   module Private
     class << self
       def elf_file?(path)
