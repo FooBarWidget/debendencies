@@ -3,7 +3,7 @@ require "optparse"
 require_relative "../debendencies"
 require_relative "version"
 
-class Debendable
+class Debendencies
   class CLI
     def initialize
       @options = {
