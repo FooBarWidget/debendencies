@@ -21,7 +21,7 @@ class Debendencies
         exit 1
       end
 
-      debendencies = Debendencies.new
+      debendencies = Debendencies.new(logger: get_logger)
       begin
         debendencies.scan(*paths)
         dependencies = debendencies.resolve
@@ -37,7 +37,7 @@ class Debendencies
           puts dep.to_s
         end
       when "json"
-        puts JSON.pretty_generate(dependencies.map { |d| d.as_json })
+        puts JSON.generate(dependencies.map { |d| d.as_json })
       else
         puts "Invalid format: #{@options[:format]}"
         exit 1
@@ -54,6 +54,10 @@ class Debendencies
           @options[:format] = format
         end
 
+        opts.on("--verbose", "Show verbose output") do
+          @options[:verbose] = true
+        end
+
         opts.on("-h", "--help", "Show this help message") do
           puts opts
           exit
@@ -63,6 +67,13 @@ class Debendencies
           puts VERSION_STRING
           exit
         end
+      end
+    end
+
+    def get_logger
+      if @options[:verbose]
+        require "logger"
+        Logger.new(STDERR)
       end
     end
   end

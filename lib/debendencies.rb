@@ -1,76 +1,15 @@
+# frozen_string_literal: true
 require "set"
 require_relative "debendencies/elf_analysis"
 require_relative "debendencies/package_finding"
+require_relative "debendencies/package_dependency"
 require_relative "debendencies/errors"
 require_relative "debendencies/utils"
 
 class Debendencies
-  # Represents a single Debian package dependency, e.g., `libc`.
-  # Could potentially have version constraints, e.g., `libc (>= 2.28, <= 2.30)`.
-  #
-  # `version_constraints` is either nil or non-empty.
-  class PackageDependency
-    attr_reader :name, :version_constraints
+  def initialize(logger: nil)
+    @logger = logger
 
-    def initialize(name, version_constraints = nil)
-      @name = name
-      @version_constraints = version_constraints
-    end
-
-    def eql?(other)
-      @name == other.name && @version_constraints == other.version_constraints
-    end
-
-    alias_method :==, :eql?
-
-    def hash
-      @name.hash ^ @version_constraints.hash
-    end
-
-    def as_json
-      result = { name: name }
-      result[:version_constraints] = version_constraints.map { |vc| vc.as_json } if version_constraints
-      result
-    end
-
-    def to_s
-      if version_constraints.nil?
-        name
-      else
-        "#{name} (#{version_constraints.map.join(", ")})"
-      end
-    end
-  end
-
-  # Represents a version constraint, e.g., `>= 2.28`.
-  class VersionConstraint
-    attr_reader :operator, :version
-
-    def initialize(operator, version)
-      @operator = operator
-      @version = version
-    end
-
-    def eql?(other)
-      @operator == other.operator && @version == other.version
-    end
-
-    alias_method :==, :eql?
-
-    def hash
-      @operator.hash ^ @version.hash
-    end
-
-    def as_json
-      { operator: operator, version: version }
-    end
-
-    def to_s
-      "#{operator} #{version}"
-    end
-  end
-
-  def initialize
     # Shared libraries (sonames) that have been scanned.
     @scanned_libs = Set.new
 
@@ -124,16 +63,25 @@ class Debendencies
   def scan_directory(dir)
     Dir.glob("**/*", base: dir) do |entry|
       path = File.join(dir, entry)
+
+      if File.symlink?(path)
+        # Libraries tend to have multiple symlinks (e.g. libfoo.so -> libfoo.so.1 -> libfoo.so.1.2.3)
+        # and we only want to process libraries once, so ignore symlinks.
+        @logger&.warn("Skipping symlink: #{path}")
+        next
+      end
+
       scan_file(path) if File.file?(path) && File.executable?(path)
     end
   end
 
   def scan_file(path)
-    # Libraries tend to have multiple symlinks (e.g. libfoo.so -> libfoo.so.1 -> libfoo.so.1.2.3)
-    # and we only want to process libraries once, so ignore symlinks.
-    return if !Private.elf_file?(path) || File.symlink?(path)
+    @logger&.info("Scanning ELF file: #{path}")
+    return @logger&.warn("Skipping non-ELF file: #{path}") if !Private.elf_file?(path)
 
     soname, dependency_libs = Private.extract_soname_and_dependency_libs(path)
+    @logger&.info("Detected soname: #{soname || "(none)"}")
+    @logger&.info("Detected dependencies: #{dependency_libs.inspect}")
     if Private.path_resembles_library?(path) && soname.nil?
       raise Error, "Error scanning ELF file: cannot determine shared library name (soname) for #{path}"
     end
