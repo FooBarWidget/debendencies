@@ -16,8 +16,8 @@ class Debendencies
       # @raise [Error] If `objdump` fails.
       def extract_soname_and_dependency_libs(path)
         popen(["objdump", "-p", path],
-              spawn_error_message: "Error scanning ELF file: cannot spawn 'objdump'",
-              fail_error_message: "Error scanning ELF file: 'objdump' failed") do |io|
+              spawn_error_message: "Error scanning ELF file dependencies: cannot spawn 'objdump'",
+              fail_error_message: "Error scanning ELF file dependencies: 'objdump' failed") do |io|
           soname = nil
           dependent_libs = []
 

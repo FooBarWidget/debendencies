@@ -88,22 +88,14 @@ A package can contain multiple libraries. Since there is only one symbols file p
 
 To learn more about the file format, see [the Debian Policy Manual](https://www.debian.org/doc/debian-policy/ch-sharedlibs.html#the-symbols-file-format).
 
-## Alternative dependencies
+## No alternative dependencies support
 
-Sometimes, multiple packages can satisfy the same library dependency. For example, both `libfoo1` and `libfoofork1` might provide `libfoo.so.1`. In cases like this, we express the dependency as an alternative, meaning that either package will satisfy the requirement.
-
-Here's an example of how alternative dependencies are expressed:
+In theory, multiple packages can satisfy the same library dependency. For example, both `libfoo1` and `libfoofork1` might provide `libfoo.so.1`. In cases like this, we express the dependency as an alternative, meaning that either package will satisfy the requirement:
 
 ```
 libfoo1 | libfoofork1
 ```
 
-This indicates that the system can install either `libfoo1` or `libfoofork1` to satisfy the dependency on `libfoo.so.1`.
+We do not implement support for library alternatives because it's pretty difficult to do. This is the main obstacle: to find out the minimum version of a dependency library, we must analyze its symbols file. That file is installed along with the library package. But we can't have multiple alternatives installed at the same time, so we can't properly analyze alternatives.
 
-If a specific version of the library is needed, the version constraint can be applied to the relevant package. For example:
-
-```
-libfoo1 (>= 1.2) | libfoofork1
-```
-
-This ensures that the system installs `libfoo1` version 1.2 or higher, but will also accept `libfoofork1` if it's available.
+In practice, there are very few (if any) libraries with alternative packages. It's probably not worth the effort even if it is possible in some way.

@@ -12,7 +12,7 @@ class Debendencies
   class PackageDependency
     attr_reader :name, :version_constraints
 
-    def initialize(name, version_constraints)
+    def initialize(name, version_constraints = nil)
       @name = name
       @version_constraints = version_constraints
     end
@@ -33,45 +33,6 @@ class Debendencies
       else
         "#{name} (#{version_constraints.map.join(", ")})"
       end
-    end
-  end
-
-  # Represents a set of alternative package dependencies, e.g., `libfoo1 | libfoofork1`.
-  class PackageDependencyAlternativesSet
-    attr_reader :alternatives
-
-    def initialize(package_dependencies)
-      @alternatives = package_dependencies
-    end
-
-    def first
-      @alternatives.first
-    end
-
-    def size
-      @alternatives.size
-    end
-
-    def empty?
-      @alternatives.empty?
-    end
-
-    def eql?(other)
-      @alternatives == other.alternatives
-    end
-
-    alias_method :==, :eql?
-
-    def hash
-      @alternatives.hash
-    end
-
-    def to_a
-      @alternatives
-    end
-
-    def to_s
-      @alternatives.map { |d| d.to_s }.join(" | ")
     end
   end
 
@@ -128,39 +89,23 @@ class Debendencies
   #     PackageDependency.new('libfoo1'),
   #   ]
   #
-  # An element can also be an array of PackageDependency objects, when there
-  # are alternative dependencies. For example, this:
-  #
-  #   [
-  #     PackageDependency.new('libc'),
-  #     [
-  #       PackageDependency.new('libfoo1'),
-  #       PackageDependency.new('libfoofork1'),
-  #     ]
-  #   ]
-  #
-  # correponds to this Debian dependency specifier:
-  #
-  #   libc, libfoo1 | libfoofork1
-  #
-  # @return [Array<PackageDependency>, Array<Array<PackageDependency>>]
+  # @return [Array<PackageDependency>]
   def resolve
-    result = Set.new
+    result = []
 
     @dependency_libs.each_pair do |dependency_soname, dependent_elf_file_paths|
       # ELF files in a package could depend on libraries included in the same package,
       # so omit resolving scanned libraries.
       next if @scanned_libs.include?(dependency_soname)
 
-      alternatives = resolve_package_dependency_alternatives(dependency_soname, dependent_elf_file_paths)
-      raise Error, "Error resolving package dependencies: no package provides #{dependency_soname}" if alternatives.empty?
+      package_name = Private.find_package_providing_lib(dependency_soname)
+      raise Error, "Error resolving package dependencies: no package provides #{dependency_soname}" if package_name.nil?
+      version_constraints = maybe_create_version_constraints(package_name, dependency_soname, dependent_elf_file_paths)
 
-      result << (alternatives.size == 1 ? alternatives.first : alternatives.to_a)
+      result << PackageDependency.new(package_name, version_constraints)
     end
 
-    # TODO: we need to perform some sort of deduplication. When doing so, preserve the
-    # largest version constraint.
-
+    result.uniq!
     result
   end
 
@@ -190,26 +135,14 @@ class Debendencies
     end
   end
 
-  # Resolves all possible Debian package names (i.e., alternatives) that provide
-  # the given shared library. Version constraints are included if necessary.
-  #
-  # @param soname [String] Soname of a shared library dependency.
-  # @param dependent_elf_files [Array<String>] ELF files that depend on this shared library.
-  # @return [PackageDependencyAlternativesSet]
-  def resolve_package_dependency_alternatives(soname, dependent_elf_files)
-    package_names = Private.find_packages_providing_lib(soname)
-
-    result = package_names.map do |package_name|
-      if (symbols_file_path = Private.find_symbols_file(package_name))
-        min_version = Private.find_min_package_version(soname,
-                                                       symbols_file_path,
-                                                       dependent_elf_files,
-                                                       @symbol_extraction_cache)
-        version_constraint = VersionConstraint.new(">=", min_version)
-      end
-      PackageDependency.new(package_name, version_constraint)
+  def maybe_create_version_constraints(package_name, soname, dependent_elf_files)
+    symbols_file_path = Private.find_symbols_file(package_name, Private.dpkg_architecture)
+    if symbols_file_path
+      min_version = Private.find_min_package_version(soname,
+                                                     symbols_file_path,
+                                                     dependent_elf_files,
+                                                     @symbol_extraction_cache)
+      [VersionConstraint.new(">=", min_version)] if min_version
     end
-
-    PackageDependencyAlternativesSet.new(result)
   end
 end
