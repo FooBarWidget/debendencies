@@ -26,6 +26,30 @@ class Debendencies
     end
   end
 
+  # Resolves the Debian package dependencies of all scanned ELF files.
+  # Returns an array of Dependency objects:
+  #
+  #   [
+  #     Dependency.new('libc6', [VersionConstraint.new('>=', '2.28')]),
+  #     Dependency.new('libfoo1'),
+  #   ]
+  #
+  # An element can also be an array of Dependency objects, when there
+  # are alternative dependencies. For example, this:
+  #
+  #   [
+  #     Dependency.new('libc'),
+  #     [
+  #       Dependency.new('libfoo1'),
+  #       Dependency.new('libfoofork1'),
+  #     ]
+  #   ]
+  #
+  # correponds to this Debian dependency specifier:
+  #
+  #   libc, libfoo1 | libfoofork1
+  #
+  # @return [Array<Dependency>, Array<Array<Dependency>>]
   def resolve
     result = []
 
@@ -42,8 +66,9 @@ class Debendencies
   private
 
   def scan_directory(dir)
-    Dir.glob("**/*", base: dir).each do |file|
-      scan_file(file) if File.file?(file) && File.executable?(file)
+    Dir.glob("**/*", base: dir) do |entry|
+      path = File.join(dir, entry)
+      scan_file(path) if File.file?(path) && File.executable?(path)
     end
   end
 
@@ -53,6 +78,9 @@ class Debendencies
     return if !elf_file?(path) || File.symlink?(path)
 
     dependent_libs, soname = extract_dependent_libs_and_soname(path)
+    if path_resembles_library? && soname.nil?
+      raise Error, "Error scanning ELF file: cannot determine shared library name (soname) for #{path}"
+    end
     @dependent_libs.merge(dependent_libs)
     @scanned_libs << soname if soname
   end
@@ -111,7 +139,7 @@ class Debendencies
   #   possibly including architecture identifier, like "libc6:amd64". Second
   #  element is the full path to the library file.
   def find_alternative_packages_for_lib(soname)
-    output, status = Open3.capture2e("dpkg-query", "-S", "*/#{lib}")
+    output, status = Open3.capture2e("dpkg-query", "-S", "*/#{soname}")
     raise Error, "Error finding packages that provide #{soname}: 'dpkg-query' failed: #{status}" unless status.success?
 
     package_names = []
@@ -145,16 +173,21 @@ class Debendencies
     max_used_package_version = nil
 
     File.open(symbols_file_path, "r:utf-8") do |f|
-      skip_until_first_symbol_for_package(f, package_name)
+      skip_symbols_file_until_library_section(f, package_name)
 
       f.each_line do |line|
+        # Ignore alternative package specifiers and metadata fields like these:
+        #
+        #   | libtinfo6 #MINVER#, libtinfo6 (<< 6.2~)
+        #   * Build-Depends-Package: libncurses-dev
+        next if line =~ /^\s*[\|\*]/
+
         # We look for a line like this:
         #
         #  NCURSES6_TIC_5.0.19991023@NCURSES6_TIC_5.0.19991023 6.1
-        if line !~ /^\s+([^\s]+)\s+([^\s]+)/
-          # Stop when we reach the section for next library
-          break
-        end
+        #
+        # Stop when we reach the section for next library
+        break if line !~ /^\s+([^\s]+)\s+([^\s]+)/
 
         symbol = $1
         package_version = $2
@@ -190,7 +223,7 @@ class Debendencies
   # Skip lines in the symbols file until the first symbol for the given package
   def skip_until_first_symbol_for_package(file, package_name)
     file.each_line do |line|
-      break if line.starts_with?("#{package_name} ")
+      break if line.start_with?("#{package_name} ")
     end
   end
 
@@ -204,15 +237,15 @@ class Debendencies
   # On success, returns the result of the block, otherwise raises an Error.
   def popen(command_args, spawn_error_message:, fail_error_message:)
     begin
-      io = IO.popen(command_args)
-    rescue SystemCallError => e
-      raise Error, "#{spawn_error_message}: #{e}"
-    end
+      begin
+        io = IO.popen(command_args)
+      rescue SystemCallError => e
+        raise Error, "#{spawn_error_message}: #{e}"
+      end
 
-    begin
       result = yield io
     ensure
-      io.close
+      io.close if io
     end
 
     if $?.success?
