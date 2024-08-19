@@ -32,7 +32,7 @@ class Debendencies
       case @options[:format]
       when "oneline"
         puts dependencies.map { |d| d.name }.join(", ")
-      when "text"
+      when "multiline"
         dependencies.each do |dep|
           puts dep.to_s
         end
@@ -50,7 +50,7 @@ class Debendencies
       @option_parser ||= OptionParser.new do |opts|
         opts.banner = "Usage: debendencies <PATHS...>"
 
-        opts.on("-f", "--format FORMAT", "Output format (oneline|text|json). Default: oneline") do |format|
+        opts.on("-f", "--format FORMAT", "Output format (oneline|multiline|json). Default: oneline") do |format|
           @options[:format] = format
         end
 

@@ -28,7 +28,9 @@ class Debendencies
     end
 
     def as_json
-      { name: name, version_constraints: version_constraints.map { |vc| vc.as_json } }
+      result = { name: name }
+      result[:version_constraints] = version_constraints.map { |vc| vc.as_json } if version_constraints
+      result
     end
 
     def to_s
