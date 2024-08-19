@@ -45,11 +45,16 @@ class Debendencies
     @dependency_libs.each_pair do |dependency_soname, dependent_elf_file_paths|
       # ELF files in a package could depend on libraries included in the same package,
       # so omit resolving scanned libraries.
-      next if @scanned_libs.include?(dependency_soname)
+      if @scanned_libs.include?(dependency_soname)
+        @logger&.info("Skipping dependency resolution for scanned library: #{dependency_soname}")
+        next
+      end
 
       package_name = Private.find_package_providing_lib(dependency_soname)
       raise Error, "Error resolving package dependencies: no package provides #{dependency_soname}" if package_name.nil?
+      @logger&.info("Resolved package providing #{dependency_soname}: #{package_name}")
       version_constraints = maybe_create_version_constraints(package_name, dependency_soname, dependent_elf_file_paths)
+      @logger&.info("Resolved version constraints: #{version_constraints.as_json.inspect}")
 
       result << PackageDependency.new(package_name, version_constraints)
     end
