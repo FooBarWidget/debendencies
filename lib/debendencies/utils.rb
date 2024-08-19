@@ -4,9 +4,11 @@ require_relative "errors"
 class Debendencies
   module Private
     class << self
+      ELF_MAGIC = String.new("\x7FELF").force_encoding("binary").freeze
+
       def elf_file?(path)
         File.open(path, "rb") do |f|
-          f.read(4) == "\x7FELF".force_encoding("binary")
+          f.read(4) == ELF_MAGIC
         end
       end
 

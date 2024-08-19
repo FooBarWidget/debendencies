@@ -17,6 +17,16 @@ class Debendencies
       @version_constraints = version_constraints
     end
 
+    def eql?(other)
+      @name == other.name && @version_constraints == other.version_constraints
+    end
+
+    alias_method :==, :eql?
+
+    def hash
+      @name.hash ^ @version_constraints.hash
+    end
+
     def to_s
       if version_constraints.nil?
         name
@@ -42,6 +52,20 @@ class Debendencies
       @alternatives.size
     end
 
+    def empty?
+      @alternatives.empty?
+    end
+
+    def eql?(other)
+      @alternatives == other.alternatives
+    end
+
+    alias_method :==, :eql?
+
+    def hash
+      @alternatives.hash
+    end
+
     def to_a
       @alternatives
     end
@@ -58,6 +82,16 @@ class Debendencies
     def initialize(operator, version)
       @operator = operator
       @version = version
+    end
+
+    def eql?(other)
+      @operator == other.operator && @version == other.version
+    end
+
+    alias_method :==, :eql?
+
+    def hash
+      @operator.hash ^ @version.hash
     end
 
     def to_s
@@ -111,18 +145,21 @@ class Debendencies
   #
   # @return [Array<PackageDependency>, Array<Array<PackageDependency>>]
   def resolve
-    result = []
+    result = Set.new
 
     @dependency_libs.each_pair do |dependency_soname, dependent_elf_file_paths|
       # ELF files in a package could depend on libraries included in the same package,
       # so omit resolving scanned libraries.
       next if @scanned_libs.include?(dependency_soname)
 
-      alternatives = resolve_package_dependency_alternatives(soname, dependent_elf_file_paths)
+      alternatives = resolve_package_dependency_alternatives(dependency_soname, dependent_elf_file_paths)
       raise Error, "Error resolving package dependencies: no package provides #{dependency_soname}" if alternatives.empty?
 
       result << (alternatives.size == 1 ? alternatives.first : alternatives.to_a)
     end
+
+    # TODO: we need to perform some sort of deduplication. When doing so, preserve the
+    # largest version constraint.
 
     result
   end
@@ -142,7 +179,7 @@ class Debendencies
     return if !Private.elf_file?(path) || File.symlink?(path)
 
     soname, dependency_libs = Private.extract_soname_and_dependency_libs(path)
-    if Private.path_resembles_library? && soname.nil?
+    if Private.path_resembles_library?(path) && soname.nil?
       raise Error, "Error scanning ELF file: cannot determine shared library name (soname) for #{path}"
     end
 
@@ -170,7 +207,7 @@ class Debendencies
                                                        @symbol_extraction_cache)
         version_constraint = VersionConstraint.new(">=", min_version)
       end
-      PackageDependency.new(pkg, version_constraint)
+      PackageDependency.new(package_name, version_constraint)
     end
 
     PackageDependencyAlternativesSet.new(result)
