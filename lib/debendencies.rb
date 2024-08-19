@@ -54,7 +54,7 @@ class Debendencies
       raise Error, "Error resolving package dependencies: no package provides #{dependency_soname}" if package_name.nil?
       @logger&.info("Resolved package providing #{dependency_soname}: #{package_name}")
       version_constraints = maybe_create_version_constraints(package_name, dependency_soname, dependent_elf_file_paths)
-      @logger&.info("Resolved version constraints: #{version_constraints.as_json.inspect}")
+      @logger&.info("Resolved version constraints: #{version_constraints.map { |vc| vc.as_json }.inspect}")
 
       result << PackageDependency.new(package_name, version_constraints)
     end
