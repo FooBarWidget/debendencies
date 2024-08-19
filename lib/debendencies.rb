@@ -101,11 +101,16 @@ class Debendencies
   def maybe_create_version_constraints(package_name, soname, dependent_elf_files)
     symbols_file_path = Private.find_symbols_file(package_name, Private.dpkg_architecture)
     if symbols_file_path
+      @logger&.info("Found symbols file for #{package_name}: #{symbols_file_path}")
       min_version = Private.find_min_package_version(soname,
                                                      symbols_file_path,
                                                      dependent_elf_files,
-                                                     @symbol_extraction_cache)
+                                                     @symbol_extraction_cache,
+                                                     @logger)
       [VersionConstraint.new(">=", min_version)] if min_version
+    else
+      @logger&.warn("No symbols file found for #{package_name}")
+      nil
     end
   end
 end

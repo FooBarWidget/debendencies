@@ -38,7 +38,7 @@ class Debendencies
 
       # Finds the minimum version of the package that provides the necessary library symbols
       # used by the given ELF files.
-      def find_min_package_version(soname, symbols_file_path, dependent_elf_file_paths, symbol_extraction_cache = {})
+      def find_min_package_version(soname, symbols_file_path, dependent_elf_file_paths, symbol_extraction_cache = {}, logger = nil)
         dependent_symbols = extract_dynamic_symbols(dependent_elf_file_paths, symbol_extraction_cache)
         return nil if dependent_symbols.empty?
 
@@ -46,6 +46,7 @@ class Debendencies
 
         list_symbols(symbols_file_path, soname) do |dependency_symbol, package_version|
           if dependent_symbols.include?(dependency_symbol)
+            logger&.info("Found in-use dependency symbol: #{dependency_symbol} (version: #{package_version})")
             if max_used_package_version.nil? || version_compare(package_version, max_used_package_version) > 0
               max_used_package_version = package_version
             end
