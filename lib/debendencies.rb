@@ -27,6 +27,10 @@ class Debendencies
       @name.hash ^ @version_constraints.hash
     end
 
+    def as_json
+      { name: name, version_constraints: version_constraints.map { |vc| vc.as_json } }
+    end
+
     def to_s
       if version_constraints.nil?
         name
@@ -53,6 +57,10 @@ class Debendencies
 
     def hash
       @operator.hash ^ @version.hash
+    end
+
+    def as_json
+      { operator: operator, version: version }
     end
 
     def to_s
