@@ -13,7 +13,7 @@ RSpec.describe Debendencies::Private do
         #{soname} #{package_name} #MINVER#
         | #{package_name} #MINVER#, #{package_name} (<< 6.2~)
         * Build-Depends-Package: libncurses-dev
-         symbol1 1.0
+         symbol1@Base 1.0
          symbol2@foo 2.0
       CONTENT
 

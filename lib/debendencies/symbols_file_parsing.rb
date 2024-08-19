@@ -36,7 +36,7 @@ class Debendencies
 
             symbol = $1
             package_version = $2
-            yield [symbol, package_version]
+            yield [symbol.sub(/@Base$/, ""), package_version]
           end
         end
       end
