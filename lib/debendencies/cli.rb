@@ -31,13 +31,13 @@ class Debendencies
 
       case @options[:format]
       when "oneline"
-        puts dependencies.map(&:name).join(" ")
+        puts dependencies.map { |d| d.name }.join(", ")
       when "text"
         dependencies.each do |dep|
           puts dep.to_s
         end
       when "json"
-        puts JSON.pretty_generate(dependencies.as_json)
+        puts JSON.pretty_generate(dependencies.map { |d| d.as_json })
       else
         puts "Invalid format: #{@options[:format]}"
         exit 1
