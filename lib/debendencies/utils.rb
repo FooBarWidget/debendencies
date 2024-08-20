@@ -51,11 +51,6 @@ class Debendencies
         end
       end
 
-      # Compares two version strings
-      def version_compare(v1, v2)
-        Gem::Version.new(v1) <=> Gem::Version.new(v2)
-      end
-
       private
 
       def read_string_envvar(name)

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+require_relative "package_version"
 
 class Debendencies
   module Private
@@ -12,7 +13,7 @@ class Debendencies
       #
       # @param path [String] Path to the symbols file.
       # @param soname [String] Soname of the library to yield symbols for.
-      # @yield [Array<String>]
+      # @yield [String, PackageVersion]
       def list_symbols(path, soname)
         File.open(path, "r:utf-8") do |f|
           # Skips lines in the symbols file until we encounter the start of the section for the given library
@@ -34,9 +35,9 @@ class Debendencies
             # Stop when we reach the section for next library
             break if line !~ /^\s+(\S+)\s+(\S+)/
 
-            symbol = $1
-            package_version = $2
-            yield [symbol.sub(/@Base$/, ""), package_version]
+            raw_symbol = $1
+            package_version_string = $2
+            yield [raw_symbol.sub(/@Base$/, ""), PackageVersion.new(package_version_string)]
           end
         end
       end

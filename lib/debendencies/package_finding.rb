@@ -47,7 +47,7 @@ class Debendencies
         list_symbols(symbols_file_path, soname) do |dependency_symbol, package_version|
           if dependent_symbols.include?(dependency_symbol)
             logger&.info("Found in-use dependency symbol: #{dependency_symbol} (version: #{package_version})")
-            if max_used_package_version.nil? || version_compare(package_version, max_used_package_version) > 0
+            if max_used_package_version.nil? || package_version > max_used_package_version
               max_used_package_version = package_version
             end
           end

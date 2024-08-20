@@ -64,9 +64,9 @@ RSpec.describe Debendencies::Private do
     it "returns the minimum package version that provides the necessary symbols" do
       dependent_symbols = ["symbol1", "symbol2"]
       symbols = [
-        ["symbol1", "1.0"],
-        ["symbol2", "2.0"],
-        ["symbol3", "3.0"],
+        ["symbol1", Debendencies::Private::PackageVersion.new("1.0")],
+        ["symbol2", Debendencies::Private::PackageVersion.new("2.0")],
+        ["symbol3", Debendencies::Private::PackageVersion.new("3.0")],
       ]
 
       allow(described_class).to \
@@ -82,15 +82,15 @@ RSpec.describe Debendencies::Private do
           and_yield(*symbols[2])
 
       result = described_class.find_min_package_version(soname, symbols_file_path, [elf_file_path])
-      expect(result).to eq("2.0")
+      expect(result.to_s).to eq("2.0")
     end
 
     it "returns nil when no symbols in the library are used" do
       dependent_symbols = ["symbol4"]
       symbols = [
-        ["symbol1", "1.0"],
-        ["symbol2", "2.0"],
-        ["symbol3", "3.0"],
+        ["symbol1", Debendencies::Private::PackageVersion.new("1.0")],
+        ["symbol2", Debendencies::Private::PackageVersion.new("2.0")],
+        ["symbol3", Debendencies::Private::PackageVersion.new("3.0")],
       ]
 
       allow(described_class).to \

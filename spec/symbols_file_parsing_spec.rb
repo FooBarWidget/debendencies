@@ -23,7 +23,7 @@ RSpec.describe Debendencies::Private do
 
         result = []
         described_class.list_symbols(symbols_file.path, soname) do |symbol, version|
-          result << [symbol, version]
+          result << [symbol, version.to_s]
         end
 
         expect(result).to eq([["symbol1", "1.0"], ["symbol2@foo", "2.0"]])
@@ -45,7 +45,7 @@ RSpec.describe Debendencies::Private do
 
         result = []
         described_class.list_symbols(symbols_file.path, soname) do |symbol, version|
-          result << [symbol, version]
+          result << [symbol, version.to_s]
         end
 
         expect(result).to eq([["symbol1", "1.0"], ["symbol2", "2.0"]])
@@ -67,7 +67,7 @@ RSpec.describe Debendencies::Private do
 
         result = []
         described_class.list_symbols(symbols_file.path, soname) do |symbol, version|
-          result << [symbol, version]
+          result << [symbol, version.to_s]
         end
 
         expect(result).to eq([["symbol1", "1.0"], ["symbol2", "2.0"]])
@@ -99,7 +99,7 @@ RSpec.describe Debendencies::Private do
 
         result = []
         described_class.list_symbols(symbols_file.path, soname) do |symbol, version|
-          result << [symbol, version]
+          result << [symbol, version.to_s]
         end
 
         expect(result).to eq([["symbol3", "1.0"], ["symbol4", "2.0"]])

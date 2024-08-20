@@ -107,7 +107,7 @@ class Debendencies
                                                      dependent_elf_files,
                                                      @symbol_extraction_cache,
                                                      @logger)
-      [VersionConstraint.new(">=", min_version)] if min_version
+      [VersionConstraint.new(">=", min_version.to_s)] if min_version
     else
       @logger&.warn("No symbols file found for #{package_name}")
       nil

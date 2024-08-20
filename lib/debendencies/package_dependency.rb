@@ -38,9 +38,16 @@ class Debendencies
     end
   end
 
-  # Represents a version constraint, e.g., `>= 2.28`.
+  # Represents a version constraint, e.g., `>= 2.28-1`.
   class VersionConstraint
-    attr_reader :operator, :version
+    # A comparison operator, e.g., `>=`.
+    #
+    # @return [String]
+    attr_reader :operator
+
+    # A Debian package version, e.g., `2.28-1`.
+    # @return [String]
+    attr_reader :version
 
     def initialize(operator, version)
       @operator = operator
