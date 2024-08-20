@@ -31,11 +31,9 @@ class Debendencies
 
       case @options[:format]
       when "oneline"
-        puts dependencies.map { |d| d.name }.join(", ")
+        puts dependencies.map { |d| d.to_s }.join(", ")
       when "multiline"
-        dependencies.each do |dep|
-          puts dep.to_s
-        end
+        dependencies.each { |d| puts d.to_s }
       when "json"
         puts JSON.generate(dependencies.map { |d| d.as_json })
       else
@@ -51,6 +49,9 @@ class Debendencies
         opts.banner = "Usage: debendencies <PATHS...>"
 
         opts.on("-f", "--format FORMAT", "Output format (oneline|multiline|json). Default: oneline") do |format|
+          if !["oneline", "multiline", "json"].include?(format)
+            abort "Invalid format: #{format.inspect}"
+          end
           @options[:format] = format
         end
 

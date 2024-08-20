@@ -33,7 +33,7 @@ class Debendencies
       if version_constraints.nil?
         name
       else
-        "#{name} (#{version_constraints.map.join(", ")})"
+        "#{name} (#{version_constraints.map { |vc| vc.to_s }.join(", ")})"
       end
     end
   end
