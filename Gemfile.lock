@@ -14,11 +14,35 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    arr-pm (0.0.12)
+    backports (3.25.0)
+    cabin (0.9.0)
+    clamp (1.0.1)
     diff-lcs (1.5.1)
+    dotenv (3.1.2)
     fileutils (1.7.2)
+    fpm (1.15.1)
+      arr-pm (~> 0.0.11)
+      backports (>= 2.6.2)
+      cabin (>= 0.6.0)
+      clamp (~> 1.0.0)
+      pleaserun (~> 0.0.29)
+      rexml
+      stud
+    insist (1.0.0)
     json (2.7.2)
+    mustache (0.99.8)
     open3 (0.2.1)
     optparse (0.5.0)
+    pleaserun (0.0.32)
+      cabin (> 0)
+      clamp
+      dotenv
+      insist
+      mustache (= 0.99.8)
+      stud
+    rexml (3.3.5)
+      strscan
     rspec (3.13.0)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -35,6 +59,8 @@ GEM
     rufo (0.18.0)
     set (1.1.0)
     stringio (3.1.1)
+    strscan (3.1.0)
+    stud (0.0.23)
     tempfile (0.2.1)
     tmpdir (0.2.0)
       fileutils
@@ -47,6 +73,7 @@ PLATFORMS
 
 DEPENDENCIES
   debendencies!
+  fpm
   rspec
   rufo
 
