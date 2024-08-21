@@ -28,18 +28,18 @@ jobs:
         run: gem build debendencies.gemspec
       
       - name: Create Debian package
-        run: >
+        run: |
           sed -i '1s|^|#!/usr/bin/ruby\n|' bin/debendencies &&
-          bundle exec fpm
-            -s dir
-            -t deb
-            -n debendencies
-            -v "$(ruby -r ./lib/debendencies/version.rb -e 'puts Debendencies::VERSION_STRING')"
-            --description "Debian package shared library dependencies inferer."
-            --architecture all
-            --depends ruby
-            --depends ruby-json
-            --prefix /usr
+          bundle exec fpm \
+            -s dir \
+            -t deb \
+            -n debendencies \
+            -v "$(ruby -r ./lib/debendencies/version.rb -e 'puts Debendencies::VERSION_STRING')" \
+            --description "Debian package shared library dependencies inferer." \
+            --architecture all \
+            --depends ruby \
+            --depends ruby-json \
+            --prefix /usr \
             bin lib
         env:
           BUNDLE_WITH: release
