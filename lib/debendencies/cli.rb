@@ -17,7 +17,7 @@ class Debendencies
 
       paths = ARGV
       if paths.empty?
-        puts option_parser
+        STDERR.puts option_parser
         exit 1
       end
 
@@ -31,15 +31,13 @@ class Debendencies
 
       case @options[:format]
       when "oneline"
-        output = dependencies.map { |d| d.to_s }.join(", ")
-        puts output unless output.empty?
+        write_output(dependencies.map { |d| d.to_s }.join(", "))
       when "multiline"
-        dependencies.each { |d| puts d.to_s }
+        write_output(dependencies.map { |d| d.to_s }.join("\n"))
       when "json"
-        puts JSON.generate(dependencies.map { |d| d.as_json })
+        write_output(JSON.generate(dependencies.map { |d| d.as_json }))
       else
-        puts "Invalid format: #{@options[:format]}"
-        exit 1
+        abort "Invalid format: #{@options[:format]}"
       end
     end
 
@@ -56,6 +54,14 @@ class Debendencies
           @options[:format] = format
         end
 
+        opts.on("-o", "--output PATH", "Write output file instead of standard output") do |path|
+          @options[:output] = path
+        end
+
+        opts.on("--tee", "When --output is specified, also write to standard output") do
+          @options[:tee] = true
+        end
+
         opts.on("--verbose", "Show verbose output") do
           @options[:verbose] = true
         end
@@ -69,6 +75,17 @@ class Debendencies
           puts VERSION_STRING
           exit
         end
+      end
+    end
+
+    def write_output(text)
+      if @options[:output]
+        File.open(@options[:output], "w") do |f|
+          f.write(text) unless text.empty?
+        end
+        puts text if @options[:tee] && !text.empty?
+      else
+        puts text unless text.empty?
       end
     end
 
