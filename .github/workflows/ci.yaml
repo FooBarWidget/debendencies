@@ -82,7 +82,7 @@ jobs:
             exit 1
           fi
           if [[ "$GITHUB_REF_NAME" != "v${VERSION_STRING}" ]]; then
-            echo "Tag version ($GITHUB_REF_NAME_NAME) does not match version.rb ($VERSION_STRING)"
+            echo "Tag version ($GITHUB_REF_NAME) does not match version.rb ($VERSION_STRING)"
             exit 1
           fi
 
