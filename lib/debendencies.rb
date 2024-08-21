@@ -87,9 +87,7 @@ class Debendencies
     soname, dependency_libs = Private.extract_soname_and_dependency_libs(path)
     @logger&.info("Detected soname: #{soname || "(none)"}")
     @logger&.info("Detected dependencies: #{dependency_libs.inspect}")
-    if Private.path_resembles_library?(path) && soname.nil?
-      raise Error, "Error scanning ELF file: cannot determine shared library name (soname) for #{path}"
-    end
+    soname = File.basename(path) if Private.path_resembles_library?(path) && soname.nil?
 
     @scanned_libs << soname if soname
     dependency_libs.each do |dependency_soname|
