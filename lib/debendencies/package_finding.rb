@@ -11,7 +11,7 @@ class Debendencies
       # Finds the package providing a specific library soname. This is done using `dpkg-query -S`.
       #
       # @return [String] The package name (like "libc6"), or nil if no package provides the library.
-      def find_package_providing_lib(soname)
+      def find_package_providing_lib(soname, architecture)
         output, error_output, status = Open3.capture3("dpkg-query", "-S", "*/#{soname}")
         if !status.success?
           if !status.signaled? && error_output.include?("no path found matching pattern")
@@ -32,8 +32,22 @@ class Debendencies
         # See rationale in HOW-IT-WORKS.md.
 
         return nil if output.empty?
-        line = output.split("\n").first
-        line.split(":", 2).first
+
+        # Split into [[package_name, architecture], ...].
+        # The architecture may be nil.
+        entries = output.split("\n").map do |line|
+          if line =~ /^(\S+?):(?:(\S+?):)? /
+            [$1, $2]
+          else
+            nil
+          end
+        end.compact
+
+        if (result = entries.find { |e| e[1] == architecture })
+          result[0]
+        else
+          entries[0][0]
+        end
       end
 
       # Finds the minimum version of the package that provides the necessary library symbols

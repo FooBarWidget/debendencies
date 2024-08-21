@@ -50,7 +50,7 @@ class Debendencies
         next
       end
 
-      package_name = Private.find_package_providing_lib(dependency_soname)
+      package_name = Private.find_package_providing_lib(dependency_soname, Private.dpkg_architecture)
       raise Error, "Error resolving package dependencies: no package provides #{dependency_soname}" if package_name.nil?
       @logger&.info("Resolved package providing #{dependency_soname}: #{package_name}")
       version_constraints = maybe_create_version_constraints(package_name, dependency_soname, dependent_elf_file_paths)

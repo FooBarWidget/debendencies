@@ -13,7 +13,7 @@ RSpec.describe Debendencies::Private do
           with("dpkg-query", "-S", "*/#{soname}").
           and_return([output, "", double(success?: true)])
 
-      result = described_class.find_package_providing_lib(soname)
+      result = described_class.find_package_providing_lib(soname, "amd64")
       expect(result).to eq("libfoo1")
     end
 
@@ -26,7 +26,7 @@ RSpec.describe Debendencies::Private do
           with("dpkg-query", "-S", "*/#{soname}").
           and_return([output, "", double(success?: true)])
 
-      result = described_class.find_package_providing_lib(soname)
+      result = described_class.find_package_providing_lib(soname, "amd64")
       expect(result).to eq("libfoo1")
     end
 
@@ -37,7 +37,7 @@ RSpec.describe Debendencies::Private do
           with("dpkg-query", "-S", "*/#{soname}").
           and_return(["", error_output, double(success?: false, signaled?: false)])
 
-      result = described_class.find_package_providing_lib(soname)
+      result = described_class.find_package_providing_lib(soname, "amd64")
       expect(result).to eq(nil)
     end
 
@@ -49,9 +49,25 @@ RSpec.describe Debendencies::Private do
           and_return(["", error_output, double(success?: false, signaled?: false)])
 
       expect {
-        described_class.find_package_providing_lib(soname)
+        described_class.find_package_providing_lib(soname, "amd64")
       }.to raise_error(Debendencies::Error,
                        "Error finding packages that provide #{soname}: 'dpkg-query' failed: #{double}: #{error_output.chomp}")
+    end
+
+    it "returns the package belonging to the current architecture if multiple packages are found" do
+      output = <<~OUTPUT
+        libfoo1-i386: /usr/lib/i386-linux-gnu/libfoo.so.1
+        libfoo1-i686:i686: /usr/lib/i686-linux-gnu/libfoo.so.1
+        libfoo1:amd64: /usr/lib/x86_64-linux-gnu/libfoo.so.1
+        libfoo1-arm64:arm64: /usr/lib/arm64-linux-gnu/libfoo.so.1
+      OUTPUT
+      allow(Open3).to \
+        receive(:capture3).
+          with("dpkg-query", "-S", "*/#{soname}").
+          and_return([output, "", double(success?: true)])
+
+      result = described_class.find_package_providing_lib(soname, "amd64")
+      expect(result).to eq("libfoo1")
     end
   end
 
