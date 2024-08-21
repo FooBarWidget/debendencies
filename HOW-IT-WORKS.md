@@ -49,9 +49,9 @@ This tells us that `libfoo.so.1` is provided by the `libfoo1` package with AMD64
 
 ## Version constraints
 
-Libraries change over time as new versions are released, often adding new functionality. Sometimes, ELF files depend on specific functions or variables (symbols) that may only be available in certain versions of a library. So we must also infer version constraints for the identified dependency packages. This process involves scanning symbol files.
+Libraries change over time as new versions are released, often adding new functionality. Sometimes, ELF files depend on specific functions or variables (symbols) that may only be available in certain versions of a library. So we must also detect version constraints for the identified dependency packages. This process involves scanning symbol files.
 
-Let's say our ELF file uses a function called `hail_taxi_with_discount` from the library `libtaxi.so.1`, packaged by the `supertaxi` package. However, `hail_taxi_with_discount` was only introduced in version Supertaxi 1.2. So we'll want to infer a dependency on `supertaxi (>= 1.2)`.
+Let's say our ELF file uses a function called `hail_taxi_with_discount` from the library `libtaxi.so.1`, packaged by the `supertaxi` package. However, `hail_taxi_with_discount` was only introduced in version Supertaxi 1.2. So we'll want to detect a dependency on `supertaxi (>= 1.2)`.
 
 ### Symbols files
 

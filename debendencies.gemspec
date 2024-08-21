@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Hongli Lai"]
   spec.email = ["hongli@hongli.nl"]
 
-  spec.summary = %q{Debian package shared library dependencies inferer}
+  spec.summary = %q{Debian package shared library dependencies detector}
   spec.description = %q{Scans executables and shared libraries for their shared library dependencies, and outputs a list of Debian package names that provide those libraries.}
   spec.homepage = "https://github.com/FooBarWidget/debendencies"
   spec.license = "MIT"

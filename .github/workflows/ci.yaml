@@ -35,7 +35,7 @@ jobs:
             -t deb \
             -n debendencies \
             -v "$(ruby -r ./lib/debendencies/version.rb -e 'puts Debendencies::VERSION_STRING')" \
-            --description "Debian package shared library dependencies inferer." \
+            --description "Debian package shared library dependencies detector." \
             --architecture all \
             --depends ruby \
             --depends ruby-json \
