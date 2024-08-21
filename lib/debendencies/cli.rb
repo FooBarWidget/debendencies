@@ -31,7 +31,8 @@ class Debendencies
 
       case @options[:format]
       when "oneline"
-        puts dependencies.map { |d| d.to_s }.join(", ")
+        output = dependencies.map { |d| d.to_s }.join(", ")
+        puts output unless output.empty?
       when "multiline"
         dependencies.each { |d| puts d.to_s }
       when "json"
