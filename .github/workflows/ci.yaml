@@ -76,13 +76,15 @@ jobs:
       - name: Verify version number
         id: get_version
         run: |
-          TAG_VERSION=${GITHUB_REF/refs\/tags\/v/}
-          FILE_VERSION=$(ruby -r ./lib/debendencies/version.rb -e "puts Debendencies::VERSION_STRING")
-          if [ "$TAG_VERSION" != "$FILE_VERSION" ]; then
-            echo "Tag version ($TAG_VERSION) does not match version.rb ($FILE_VERSION)"
+          VERSION_STRING=$(ruby -r ./lib/debendencies/version.rb -e "puts Debendencies::VERSION_STRING")
+          if ! [[ "$GITHUB_REF_NAME" =~ ^v ]]; then
+            echo "Tag name must start with a 'v'."
             exit 1
           fi
-          echo "::set-output name=version::$TAG_VERSION"
+          if [[ "$GITHUB_REF_NAME" != "v${VERSION_STRING}" ]]; then
+            echo "Tag version ($GITHUB_REF_NAME_NAME) does not match version.rb ($VERSION_STRING)"
+            exit 1
+          fi
 
       - name: Download gem artifact
         uses: actions/download-artifact@v4
@@ -100,8 +102,6 @@ jobs:
           RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
 
       - name: Create GitHub release
-        run: gh release create "$TAG_NAME" *.deb --title "$RELEASE_NAME" --notes-from-tag
+        run: gh release create "$GITHUB_REF_NAME" *.deb --title "$GITHUB_REF_NAME" --notes-from-tag
         env:
-          TAG_NAME: ${{ github.ref }}
-          RELEASE_NAME: ${{ github.ref }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
