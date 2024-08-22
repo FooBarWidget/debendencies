@@ -1,5 +1,7 @@
 # Debian package shared library dependencies detector
 
+![Debendencies social media banner](banner.jpg)
+
 Debendencies scans executables and shared libraries for their shared library dependencies, and outputs a list of Debian package names that provide those libraries. It fulfills the same role as [dpkg-shlibdeps](https://manpages.debian.org/stable/dpkg-dev/dpkg-shlibdeps.1.en.html) but can be used as a standalone tool instead of being tied to the official Debian package building process. This means that Debendencies can be used in combination with [fpm](https://github.com/jordansissel/fpm) or other packaging tools.
 
 For a detailed description of what happens under the hood, see [How it works](HOW-IT-WORKS.md).
